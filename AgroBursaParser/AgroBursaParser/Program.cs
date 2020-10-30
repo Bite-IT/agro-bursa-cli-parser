@@ -18,7 +18,7 @@ namespace AgroBursaParser
         static void Main(string[] args)
         {
             ResultsList = new List<Results>();
-            keywordVKList = new List<string> { "Зерноотход", "Фуражн* пшениц*", "пшеница *2000т* цена", "ячмень *2000т* цена", "кукуруза *2000т* цена", "куплю пшеницу"};
+            keywordVKList = new List<string> { @"Зерноотход", @"Фуражн\.* пшениц", @"пшениц \.*2000т\.* цена", @"ячмен \.*2000т\.* цена", @"кукуруз \.*2000т\.* цена", @"куплю пшениц" };
             ResultsList.AddRange(VkParse.MainMethod(keywordVKList.ToList(), new List<string> { "https://vk.com/zernovoz", "https://vk.com/zernovozs", "https://vk.com/gruzvoju", "https://vk.com/id618791000" }));
             AgroBursaParser.MainMethod();
             Console.WriteLine("Done");

@@ -120,13 +120,13 @@ namespace AgroBursaParser
                 }
 
                 // запись в файл
-                /*using(FileStream fstream = new FileStream(@$"{outputFile.Path}\{outputFile.FileName}", FileMode.Create)) {
+                using(FileStream fstream = new FileStream(@$"{outputFile.Path}\{outputFile.FileName}", FileMode.Create)) {
                     // преобразуем строку в байты
                     byte[] array = System.Text.Encoding.Default.GetBytes(outputFile.CsvContent);
                     // запись массива байтов в файл
                     fstream.Write(array, 0, array.Length);
                     Console.WriteLine(@$"{outputFile.Path}\{outputFile.FileName}");
-                }*/
+                }
             }
         }
 

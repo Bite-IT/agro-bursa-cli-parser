@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace AgroBursaParser {
@@ -29,7 +30,7 @@ namespace AgroBursaParser {
         public static Results[] MainMethod(List<string> keywords, List<string> Url) {
 
             
-
+            
             DateTime days = new DateTime();
             string[] date = new string[10];
             string[] month = new string[12];
@@ -79,41 +80,35 @@ namespace AgroBursaParser {
                 HtmlDocument doc = new HtmlDocument();
                 doc.LoadHtml(html);
                 IEnumerable<HtmlNode> TextNodes = doc.DocumentNode.SelectNodes("//div[@class='_post_content']");
-                List<HtmlNode> qwe = new List<HtmlNode>();
+                List<HtmlNode> HtmlNodeList = new List<HtmlNode>();
+                e = 0;
                 foreach(HtmlNode node in TextNodes) {
-                    qwe.Add(node);
-                    infoNotesList.Add( new InfoNote {Author = qwe[e].SelectSingleNode("//a[@class='author']").InnerText, Date = "", Text = "" }) ;
+                    HtmlNodeList.Add(node);
+                    string Xpath = node.XPath;
+                    infoNotesList.Add( new InfoNote {Author = HtmlNodeList[e].SelectSingleNode("//a[@class='author']").InnerText, Date = "", Text = "" }) ;
                     //infoNotesList[infoNotesList.Count - 1].Date = node.SelectSingleNode("//a[@class='wi_date']").InnerText; //rel_date rel_date_needs_update
 
-                    if(qwe[e].SelectSingleNode("//span[@class='rel_date']").ToString() != null) {
-                        infoNotesList[infoNotesList.Count - 1].Date = qwe[e].SelectSingleNode("//span[@class='rel_date']").InnerText;
-                    } else if(qwe[e].SelectSingleNode("//span[@class='rel_date rel_date_needs_update']").ToString() != null) {
-                        infoNotesList[infoNotesList.Count - 1].Date = qwe[e].SelectSingleNode("//span[@class='rel_date rel_date_needs_update']").InnerText;
+                    if(HtmlNodeList[e].SelectSingleNode("//span[@class='rel_date']").ToString() != null) {
+                        infoNotesList[infoNotesList.Count - 1].Date = HtmlNodeList[e].SelectSingleNode("//span[@class='rel_date']").InnerText;
+                    } else if(HtmlNodeList[e].SelectSingleNode("//span[@class='rel_date rel_date_needs_update']").ToString() != null) {
+                        infoNotesList[infoNotesList.Count - 1].Date = HtmlNodeList[e].SelectSingleNode("//span[@class='rel_date rel_date_needs_update']").InnerText;
                     }
 
-                    if(qwe[e].SelectSingleNode("//div[@class='wall_post_text']").ToString() != null) {
-                        infoNotesList[infoNotesList.Count - 1].Text = qwe[e].SelectSingleNode("//div[@class='wall_post_text']").InnerText;
-                    } else if(qwe[e].SelectSingleNode("//div[@class='pi_text zoom_text']").ToString() != null) {
-                        infoNotesList[infoNotesList.Count - 1].Text = qwe[e].SelectSingleNode("//div[@class='wall_post_text zoom_text']").InnerText;
+                    if(HtmlNodeList[e].SelectSingleNode("//div[@class='wall_post_text']").ToString() != null) {
+                        infoNotesList[infoNotesList.Count - 1].Text = HtmlNodeList[e].SelectSingleNode("//div[@class='wall_post_text']").InnerText;
+                    } else if(HtmlNodeList[e].SelectSingleNode("//div[@class='pi_text zoom_text']").ToString() != null) {
+                        infoNotesList[infoNotesList.Count - 1].Text = HtmlNodeList[e].SelectSingleNode("//div[@class='wall_post_text zoom_text']").InnerText;
                     }
                     e++;
                 }
 
-                for(int j = 0; j < infoNotesList.Count; j++) {
+                for(int j = 0; j < HtmlNodeList.Count; j++) {
                     bool flag = false;
-                    if(CompareText(infoNotesList[j].Date, date)) {
-                        if(CompareText(infoNotesList[j].Text, keywordList.ToArray())){
-                            EndList.Add(new Results { Author = infoNotesList[j].Author, Date = infoNotesList[j].Date, Text = infoNotesList[j].Text, Url = UrlList[i] });
-                            flag = true;
+                    if(CompareText(HtmlNodeList[j].InnerText, date)) {
+                        if(CompareText(HtmlNodeList[j].InnerText, keywordList.ToArray())){
+                            EndList.Add(new Results {Text = HtmlNodeList[j].InnerText, Url = UrlList[i] });
                         }
-                    }
-
-                    if (!flag) {
-                        infoNotesList[i].Author = "";
-                        infoNotesList[i].Date = "";
-                        infoNotesList[i].Text = "";
-                    }
-                    
+                    }                    
                 }
 
             }
@@ -123,7 +118,7 @@ namespace AgroBursaParser {
 
         private static bool CompareText(string text, string[] comparedWords) {
             for(int i = 0; i < comparedWords.Length; i++) {
-                if((text.ToLower().Contains(comparedWords[i]))) {
+                if(Regex.IsMatch(text.ToLower(), @"\.*" + comparedWords[i] + @"\.*")) {
                     return true;
                 }
             }
