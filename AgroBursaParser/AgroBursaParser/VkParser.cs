@@ -12,7 +12,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace AgroBursaParser {
-    class VkParse {
+    class VkParser {
 
         static System.Net.WebClient web = new System.Net.WebClient { Encoding = Encoding.UTF8 };
 
@@ -22,7 +22,7 @@ namespace AgroBursaParser {
         private static List<Results> EndList;
 
 
-        public VkParse() {
+        public VkParser() {
 
         }
 
@@ -54,8 +54,6 @@ namespace AgroBursaParser {
 
             for(int i = 0; i < UrlList.Count; i++) {
                 infoNotesList = new List<InfoNote>();
-
-                //ChromeDriver driver = new ChromeDriver(@"D:\repo\agro-bursa-cli-parser\AgroBursaParser\AgroBursaParser\");
                 
                 ChromeOptions options = new ChromeOptions();
                 options.AddArgument("--lang=ru-RU");
@@ -67,46 +65,39 @@ namespace AgroBursaParser {
 
 
 
-                for(int j = 0; j < 40; j++) {
+                for(int j = 0; j < 70; j++) {
                     js.ExecuteScript("window.scrollBy(0,10000)");
-                    Thread.Sleep(200);
+                    Thread.Sleep(300);
                 }
 
                 string title = driver.Title;//Page title
                 string html = driver.PageSource;//Page Html
                 driver.Close();
 
-                //string htmlDocumentString = web.DownloadString(UrlList[i] + "/");
+
                 HtmlDocument doc = new HtmlDocument();
                 doc.LoadHtml(html);
                 IEnumerable<HtmlNode> TextNodes = doc.DocumentNode.SelectNodes("//div[@class='_post_content']");
-                List<HtmlNode> HtmlNodeList = new List<HtmlNode>();
-                e = 0;
                 foreach(HtmlNode node in TextNodes) {
-                    HtmlNodeList.Add(node);
-                    string Xpath = node.XPath;
-                    infoNotesList.Add( new InfoNote {Author = HtmlNodeList[e].SelectSingleNode("//a[@class='author']").InnerText, Date = "", Text = "" }) ;
-                    //infoNotesList[infoNotesList.Count - 1].Date = node.SelectSingleNode("//a[@class='wi_date']").InnerText; //rel_date rel_date_needs_update
+                    infoNotesList.Add( new InfoNote {Author = node.SelectSingleNode(node.XPath + "//a[@class='author']").InnerText, Date = "", Text = "" }) ;
 
-                    if(HtmlNodeList[e].SelectSingleNode("//span[@class='rel_date']").ToString() != null) {
-                        infoNotesList[infoNotesList.Count - 1].Date = HtmlNodeList[e].SelectSingleNode("//span[@class='rel_date']").InnerText;
-                    } else if(HtmlNodeList[e].SelectSingleNode("//span[@class='rel_date rel_date_needs_update']").ToString() != null) {
-                        infoNotesList[infoNotesList.Count - 1].Date = HtmlNodeList[e].SelectSingleNode("//span[@class='rel_date rel_date_needs_update']").InnerText;
+                    if(node.SelectSingleNode(node.XPath + "//span[@class='rel_date']") != null) {
+                        infoNotesList[infoNotesList.Count - 1].Date = node.SelectSingleNode(node.XPath + "//span[@class='rel_date']").InnerText;
+                    } else if(node.SelectSingleNode(node.XPath + "//span[@class='rel_date rel_date_needs_update']") != null) {
+                        infoNotesList[infoNotesList.Count - 1].Date = node.SelectSingleNode(node.XPath + "//span[@class='rel_date rel_date_needs_update']").InnerText;
                     }
 
-                    if(HtmlNodeList[e].SelectSingleNode("//div[@class='wall_post_text']").ToString() != null) {
-                        infoNotesList[infoNotesList.Count - 1].Text = HtmlNodeList[e].SelectSingleNode("//div[@class='wall_post_text']").InnerText;
-                    } else if(HtmlNodeList[e].SelectSingleNode("//div[@class='pi_text zoom_text']").ToString() != null) {
-                        infoNotesList[infoNotesList.Count - 1].Text = HtmlNodeList[e].SelectSingleNode("//div[@class='wall_post_text zoom_text']").InnerText;
+                    if(node.SelectSingleNode(node.XPath + "//div[@class='wall_post_text']") != null) {
+                        infoNotesList[infoNotesList.Count - 1].Text = node.SelectSingleNode(node.XPath + "//div[@class='wall_post_text']").InnerText;
+                    } else if(node.SelectSingleNode(node.XPath + "//div[@class='pi_text zoom_text']") != null) {
+                        infoNotesList[infoNotesList.Count - 1].Text = node.SelectSingleNode(node.XPath + "//div[@class='wall_post_text zoom_text']").InnerText;
                     }
-                    e++;
                 }
 
-                for(int j = 0; j < HtmlNodeList.Count; j++) {
-                    bool flag = false;
-                    if(CompareText(HtmlNodeList[j].InnerText, date)) {
-                        if(CompareText(HtmlNodeList[j].InnerText, keywordList.ToArray())){
-                            EndList.Add(new Results {Text = HtmlNodeList[j].InnerText, Url = UrlList[i] });
+                for(int j = 0; j < infoNotesList.Count; j++) {
+                    if(CompareText(infoNotesList[j].Date, date)) {
+                        if(CompareText(infoNotesList[j].Text, keywordList.ToArray())){
+                            EndList.Add(new Results {Text = infoNotesList[j].Text.Replace("----------------", "").Replace("-----------------", "").Replace("Показать полностью...", " ").Replace("------------------", " "), Url = UrlList[i], Author = infoNotesList[j].Author, Date = infoNotesList[j].Date });
                         }
                     }                    
                 }
